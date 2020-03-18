@@ -1,0 +1,7 @@
+- name: LeoKnight
+  bio: |
+    Standing on the shoulders of giants.
+  avatar: ./avatars/LeoKnight.jpeg
+  featured: true
+  social:
+    - url: https://twitter.com/LeoKnight_Li
