@@ -1,0 +1,228 @@
+---
+title: 深入浅出 react 事件代理
+author: LeoKnight
+date: 2020-03-19
+hero:
+excerpt:
+canonical_url:
+---
+
+## 阐述
+
+React 中支持两种方式给元素添加监听事件
+1. React 事件委托方式
+2. 使用 ref 获取 DOM 节点，使用 DOM 方式
+在工作中基本都是使用第一种，没人会闲的蛋疼去拿 DOM 操作，但是你有想过这两种方式的不同吗？接下来，让我们写个 demo 看下
+```jsx
+function App() {
+  const ele = useRef(null);
+  useEffect(()=>{
+    ele.current.addEventListener('click',(event)=>{ //DOM 方式
+      console.log('inside',event)
+    })
+  })
+  const handleClick = (event)=>{  //React 事件委托方式
+    console.log('inside',event)
+  }
+  const handleClick2 = ()=>{
+    console.log('ouside')
+  }
+  return (
+    <div className="App"
+      onClick={handleClick2}
+    >
+      <button onClick={handleClick}>normal</button>
+      <button ref={ele}>ref</button>
+    </div>
+  );
+}
+
+document.getElementById('root').addEventListener('click',(event)=>{
+    console.log('root====>',event)
+})
+ReactDOM.render(<App />, document.getElementById('root'));
+```
+如上代码，两种不同的代理方式，点击结果会是什么结果呢？
+React 事件委托方式：root => inside => outside
+DOM 绑定事件方式：inside => root => outside
+两种不同的绑定方式导致了不同的冒泡顺序，接下来让我通过这个问题来探究 React 的事件管理机制
+
+## 探究
+
+### 先来聊聊 React 的事件处理
+
+React 中的事件绑定和 DOM 中的很相似，但是有一些语法上的不同：
+* React 事件命名使用小驼峰式（camelCase), 而不是纯小写
+* 使用 JSX 语法时你需要传入一个函数作为事件处理函数，而不是一个字符串。
+
+Virtual DOM在是由js对象构造的对象树，在内存中是以对象形式存在的，如果想在这些对象上添加事件，变得很简单。React基于Virtual DOM实现了一个SyntheticEvent(合成事件)层，我们定义的事件处理器会接收到一个SyntheticEvent对象的实例，它与原生的浏览器事件拥有一样的接口，同样支持事件冒泡机制，可以直接使用stopPropagation()和prevenTDefault()来中断它。
+所有事件都是绑定到最外层上，如果想要访问原生事件对象，可以使用nativeEvent属性。
+
+```js
+//参数nativeEvent即为本地浏览器的原生事件
+//参数dispatchMarker标记事件源
+function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent){
+    ...
+    var defaultPrevented = ...;
+    设置 this.isDefaultPrevented
+    设置 this.isPropagationStopped
+}
+assign(SyntheticEvent.prototype,{
+
+    //和原生浏览器事件一样的接口
+    preventDefault:...
+    stopPropagation:...
+
+    //React采用的是动态绑定，每个事件循环之后所有被dispatch的事件都会被释放回事件池内，事件是否应被释放由isPersistent决定
+    persist: ...
+    ...
+})
+```
+React事件机制流程大致如下
+DOM -> ReactEvent Listener -> ReactEvent Emitter -> EventPluginHub -> application
+
+DOM将浏览器的原生事件传递给ReactEventListener，ReactEventListener只负责一件事情——封装原生浏览器事件。ReactEventEmitter负责将封装好的事件attach到顶层的event listener(top level的事件类型定义在EventConstants模块中)，到此为止是React主线程完成的，其余的具体事件处理由plugins负责。
+EventPluginHub是事件的处理中心，它负责接收添加好top level event listener的事件，询问各个plugin是否需要该事件，将每个事件annotate到dispatches，然后dispatch事件。
+ReactEventListener:
+```js
+var ReactEventListener = {
+    ...
+    //两个主要接口，分别利用事件冒泡和事件捕获封装事件
+    trapBubbledEvent: function(){
+        return EventListener.listen(...);
+    },
+    trapCapturedEvent: function(){
+        return EventListener.capture(...);
+    }
+};
+```
+ReactBrowserEventEmitter:
+```js
+var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
+  listenTo:function(){
+    //获得事件依赖
+    var dependencies =
+  EventPluginRegistry.registrationNameDependencies[registrationName];
+    var dependency = dependencies[i];
+    ...
+     for (var i = 0; i < dependencies.length; i++) {
+        ...
+        //根据事件类型进行封装
+        if (dependency === topLevelTypes.topWheel) {
+            ...
+        }else(dependency === topLevelTypes.topScroll){
+            ...
+        }...
+     }
+  }
+}
+```
+EventPluginHub:
+```js
+//储存event listeners
+var listenerBank = {};
+
+//已经有了dispatch对象集合(这里我翻译不出来，英文是dispatches，也就是事件将要被dispatch——我的理解是事件被派遣到的所有元素)的事件，存储到eventQueue中，等待被dispatch
+var eventQueue = null;
+
+var executeDispatchesAndRelease = function(){
+    ...
+    //dispatch事件
+    EventPluginUtils.executeDispatchesInOrder(event, executeDispatch);
+
+    //如果事件不是persistant，执行完后将其释放
+    if (!event.isPersistent()) {
+        event.constructor.release(event);
+    }
+};
+
+var EventPluginHub = {
+    ...
+
+    //为事件插件提供一个取出事件的借口接口
+    extractEvents: function(){
+    }
+}
+```
+
+### 合成事件的实现机制
+
+在React底层，主要对合成事件做了两件事情：事件委派和自动绑定。
+
+#### 事件委派
+
+React的事件代理机制，它并不是把事件处理函数直接绑定到真实的节点上，而是把所有事件绑定到结构的最外层，使用一个统一的事件监听器，在这个事件监听器上维持了一个映射来保存组件内部的事件监听与处理函数。当组件挂载或卸载时，在这个统一的事件监听器上进行删除和插入一些对象；当事件发生的时候，首先被这个统一的监听器拦截，然后在映射表中找到真正的处理函数并调用，这样简化了事件处理和回收机制，效率上有很大的提升
+
+#### 自动绑定
+
+平时使用es6的class或者纯函数时，它的自定绑定就不存在了，如果使React.createClass，则每个方法的上下文都会指向该组件的实例，即自动绑定this为当前组件。
+es6的手动绑定方案有三种：
+1. bind方法
+2. 在构造函数中声明绑定
+3. 直接使用箭头函数
+
+### 事件委托和 DOM 绑定混用会带来什么问题？
+
+举个比较落地一点的例子：点击一个按钮，现实二维码，点击非二维码区将隐藏二维码
+
+```jsx
+class QrCode extends Component {
+  componentDidMount() {
+    document.body.addEventListener('click', e => {
+      this.setState({active: false});
+    });
+  }
+  componentWillUnmount() {
+  document.body.removeEventListener('click');
+  }
+  handleButton() {
+  this.setState({active: true});
+  }
+  handleQr(e) {
+  e.stopPropagation();
+  }
+  render() {
+  return (
+    <div>
+      <button onClick={this.handleButton.bind(this)}>点击二维码</button>
+      <div className="code" onClick={this.handleQr.bind(this)} style={{display: this.satate.active ? ' block': 'none'}}>
+        <image src="" alt='qr' />
+      </div>
+    </div>
+  )}
+}
+```
+
+看着逻辑是正确的，但是事与愿违，当点击到二维码图片时，二维码隐藏了，与所想的结果不一致？这个是什么原因，不是已经中断冒泡了？为什么这样？
+
+答案：React合成事件系统是委托机制，在合成事件内部仅仅对最外层容器进行了绑定，并把事件的冒泡机制也给委派了，也就是说，事件没有绑定到qr元素上， e.stopPropagation()没有启动作用，当然有解决方案,使用e.target 来避免
+
+```jsx
+componentDidMount() {
+  document.body.addEventListener('click', e => {
+      if(e..target && e.target.match('div.code')) {
+      return;
+    }
+    this.setState({active: false});
+  });
+}
+```
+阻止React事件冒泡行为，只用于React的合成事件系统，没有办法阻止原生事件的冒泡，反之，原生的阻止冒泡可以阻止React的事件冒泡。
+
+
+### 对比React合成事件与JS原生事件
+
+（1）冒泡方式
+JS原生事件：事件的传播分三个阶段，事件捕获，目标事件，事件冒泡；
+React合成事件：仅仅支持事件冒泡；
+
+（2）阻止冒泡，
+JS原生事件：使用e.preventDefault()，对于不支持此方法(ie9一下)的使用e.cancelBulle = true来阻止，
+React合成事件：e.preventDefault()即可;
+
+（3）事件类型
+React合成事件的事件类型是 JS原生事件类型的一个子集；
+
+（4）事件对象
+JS原生事件：采用window.event来获取；
+React合成事件：在事件函数中，自动传入合成事件对象。
