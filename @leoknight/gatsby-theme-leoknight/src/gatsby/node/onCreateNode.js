@@ -84,10 +84,10 @@ module.exports = ({ node, actions, getNode, createNodeId }, themeOptions) => {
       date: node.frontmatter.date,
       hero: node.frontmatter.hero,
       secret: node.frontmatter.secret || false,
-      slug: generateSlug(
-        basePath,
-        generateArticlePermalink(
-          slugify(node.frontmatter.slug || node.frontmatter.title),
+      slug: 
+      generateSlug(
+        basePath,generateArticlePermalink(
+          node.frontmatter.slug || node.frontmatter.title,
           node.frontmatter.date,
         ),
       ),

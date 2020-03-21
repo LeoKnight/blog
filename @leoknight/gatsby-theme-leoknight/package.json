@@ -1,6 +1,6 @@
 {
   "name": "@leoknight/gatsby-theme-leoknight",
-  "author": "dennis@narative.co",
+  "author": "leoknight@leoknight.io",
   "repository": "https://github.com/narative/gatsby-theme-novela",
   "version": "0.0.1",
   "main": "index.js",
@@ -40,6 +40,7 @@
     "@raae/gatsby-remark-oembed": "^0.1.1",
     "adm-zip": "^0.4.13",
     "babel-plugin-emotion": "^10.0.14",
+    "css-doodle": "^0.8.1",
     "gatsby": "^2.15.7",
     "gatsby-image": "^2.2.7",
     "gatsby-paginate": "^1.1.0",

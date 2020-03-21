@@ -9,6 +9,9 @@ canonical_url:
 
 ## 问题原因
 当项目中依赖 `mozjpeg` 这个依赖，安装是会报如下错误
+<div class="Image__Small">
+  <img src="./error.png" alt="alt text for small image" />
+</div>
 
 ```shell
 gyp: No Xcode or CLT version detected!
@@ -35,4 +38,8 @@ sudo rm -r -f /Library/Developer/CommandLineTools
 ```shell
 xcode-select --install
 ```
+执行期间会让你输入秘密，按提示操作即可
 
+<div class="Image__Small">
+  <img src="./installing.png" alt="alt text for small image" />
+</div>

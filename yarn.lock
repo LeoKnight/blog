@@ -5029,6 +5029,11 @@ css-declaration-sorter@^4.0.1:
     postcss "^7.0.1"
     timsort "^0.3.0"
 
+css-doodle@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.npm.taobao.org/css-doodle/download/css-doodle-0.8.1.tgz#cf6e1d4a392d99d7e482658526efe6f79300a9a0"
+  integrity sha1-z24dSjktmdfkgmWFJu/m95MAqaA=
+
 css-in-js-utils@^2.0.0:
   version "2.0.1"
   resolved "https://registry.npm.taobao.org/css-in-js-utils/download/css-in-js-utils-2.0.1.tgz?cache=0&sync_timestamp=1574172826318&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fcss-in-js-utils%2Fdownload%2Fcss-in-js-utils-2.0.1.tgz#3b472b398787291b47cfe3e44fecfdd9e914ba99"

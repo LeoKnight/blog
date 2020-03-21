@@ -4,7 +4,7 @@ import { css } from '@emotion/core';
 import { Link } from 'gatsby';
 
 import Headings from '@components/Headings';
-import Image, { ImagePlaceholder } from '@components/Image';
+import Image, { ImagePlaceholder } from '../../components/Image';
 
 import mediaqueries from '@styles/media';
 import { IArticle } from '@types';

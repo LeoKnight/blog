@@ -43,10 +43,10 @@ const Subscription: React.FC<{}> = () => {
       <SubscriptionContainer>
         <Content>
           <Heading>
-            订阅
+            欢迎订阅我的频道
           </Heading>
           <Text>
-            订阅
+            输入邮箱您将加入到我的邮箱组中，当有文章更新时，您将第一时间得到推送，保护隐私是我的做人准则，您的邮箱不会被第三方获取。
           </Text>
           <Form onSubmit={handleSubmit} hasError={error}>
             <Input
@@ -63,7 +63,7 @@ const Subscription: React.FC<{}> = () => {
               subscribed={subscribed}
               disabled={subscribed}
             >
-              {subscribed ? <CheckMarkIcon /> : "Subscribe"}
+              {subscribed ? <CheckMarkIcon /> : "订阅"}
             </Button>
             {error && <Error dangerouslySetInnerHTML={{ __html: error }} />}
           </Form>

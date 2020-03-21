@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled from "@emotion/styled";
-
+import Doodle from './Doodle'
 import mediaqueries from "@styles/media";
 
 const Container = styled.div`
@@ -13,6 +13,7 @@ const Container = styled.div`
   color: #898989;
   font-size: 32px;
   font-weight: 600;
+  overflow:hidden;
 
   ${mediaqueries.phablet`
     font-size: 28px;
@@ -33,11 +34,27 @@ const ImagePlaceholder: React.FC<{}> = (props) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  console.log(`${dimensions.width} x ${dimensions.height}`)
   return (
     <Container ref={containerRef} {...props}>
-      <div>
-        {dimensions.width} x {dimensions.height}
-      </div>
+        {/* {dimensions.width} x {dimensions.height} */}
+        <Doodle
+          grid="5x4"
+          rule={`
+          :doodle {
+            width: 100%;
+            height: 100%;
+            background: @multi(10, (
+              conic-gradient(
+                from @r(360deg),
+                @p(#00b8a9, #f8f3d4, #f6416c,  #ffde7d) @r(100%),
+                @p(#00b8a9, #f8f3d4, #f6416c,  #ffde7d) @lr()
+              )
+            ));
+          }
+          
+          `}
+        />
     </Container>
   );
 };

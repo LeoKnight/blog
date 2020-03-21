@@ -2,7 +2,7 @@
 title: 深入浅出 react 事件代理
 author: LeoKnight
 date: 2020-03-19
-hero:
+hero: ./hero.webp
 excerpt:
 canonical_url:
 ---
@@ -212,17 +212,15 @@ componentDidMount() {
 
 ### 对比React合成事件与JS原生事件
 
-（1）冒泡方式
+1. 冒泡方式
 JS原生事件：事件的传播分三个阶段，事件捕获，目标事件，事件冒泡；
 React合成事件：仅仅支持事件冒泡；
 
-（2）阻止冒泡，
+2. 阻止冒泡，
 JS原生事件：使用e.preventDefault()，对于不支持此方法(ie9一下)的使用e.cancelBulle = true来阻止，
 React合成事件：e.preventDefault()即可;
-
-（3）事件类型
+3. 事件类型
 React合成事件的事件类型是 JS原生事件类型的一个子集；
-
-（4）事件对象
+4. 事件对象
 JS原生事件：采用window.event来获取；
 React合成事件：在事件函数中，自动传入合成事件对象。
