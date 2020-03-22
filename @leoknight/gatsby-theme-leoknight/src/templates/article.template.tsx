@@ -8,6 +8,7 @@ import MDXRenderer from "@components/MDX";
 import Progress from "@components/Progress";
 import Section from "@components/Section";
 import Subscription from "@components/Subscription";
+import Discussion from "../components/Discussion";
 
 import mediaqueries from "@styles/media";
 import { debounce } from "@utils";
@@ -79,7 +80,6 @@ const Article: Template = ({ pageContext, location }) => {
 
     return () => window.removeEventListener("resize", calculateBodySize);
   }, []);
-
   return (
     <Layout>
       <ArticleSEO article={article} authors={authors} location={location} />
@@ -96,6 +96,7 @@ const Article: Template = ({ pageContext, location }) => {
         </MDXRenderer>
       </ArticleBody>
       {mailchimp && article.subscription && <Subscription />}
+      <Discussion article={article} />
       {next.length > 0 && (
         <NextArticle narrow>
           <FooterNext>More articles from {name}</FooterNext>
