@@ -93,7 +93,6 @@ module.exports = async ({ actions: { createPage }, graphql }, themeOptions) => {
       log('Querying Authors & Articles source:', 'Local');
       const localAuthors = await graphql(query.local.authors);
       const localArticles = await graphql(query.local.articles);
-      console.log('1111',JSON.stringify(localArticles))
       dataSources.local.authors = localAuthors.data.authors.edges.map(
         normalize.local.authors,
       );

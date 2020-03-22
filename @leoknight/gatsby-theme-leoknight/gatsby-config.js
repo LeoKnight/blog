@@ -255,6 +255,6 @@ module.exports = ({
       options: {
         displayName: process.env.NODE_ENV === `development`,
       },
-    },
+    }
   ],
 });

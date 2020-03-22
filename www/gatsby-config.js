@@ -49,6 +49,13 @@ const plugins = [
       icon: `src/assets/favicon.png`,
     },
   },
+  {
+    resolve: "gatsby-plugin-mailchimp",
+    options: {
+      endpoint:
+        "https://netlify.us19.list-manage.com/subscribe/post?u=77f953e191e4d9173630e18df&amp;id=2382f0ab1e",
+    },
+  },
 ];
 
 

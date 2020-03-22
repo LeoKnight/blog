@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import Doodle from './Doodle'
+// import Doodle from './Doodle'
 import mediaqueries from "@styles/media";
 
 const Container = styled.div`
@@ -34,11 +34,10 @@ const ImagePlaceholder: React.FC<{}> = (props) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  console.log(`${dimensions.width} x ${dimensions.height}`)
   return (
     <Container ref={containerRef} {...props}>
-        {/* {dimensions.width} x {dimensions.height} */}
-        <Doodle
+        {dimensions.width} x {dimensions.height}
+        {/* <Doodle
           grid="5x4"
           rule={`
           :doodle {
@@ -54,7 +53,7 @@ const ImagePlaceholder: React.FC<{}> = (props) => {
           }
           
           `}
-        />
+        /> */}
     </Container>
   );
 };
