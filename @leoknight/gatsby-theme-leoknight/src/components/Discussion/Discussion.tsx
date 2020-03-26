@@ -1,21 +1,45 @@
-import React,{useState} from "react";
+import React,{useState,useEffect} from "react";
 import styled from "@emotion/styled";
 import Section from "@components/Section";
 import mediaqueries from "@styles/media";
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
+const tmp = [
+  {
+    content:'content',
+    reply:[
+      {
+        content:'reply content'
+      }
+    ]
+  },{
+    content:'content2',
+    reply:[
+      {
+        content:'reply content'
+      }
+    ]
+  }
+]
 
 const Discussion: React.FC<{}> = (preProps) => {
   const [editorState, setEditorState] = useState("");
+  const [discussionData, setDiscussionData] = useState([]);
 
   const onEditorStateChange =(value:string)=>{
     console.log('value====>',value)
     setEditorState(value)
   }
+
+  useEffect(()=>{
+    setDiscussionData(tmp)
+  })
+
   return(
     <Section narrow>
       <DiscussionContainer>
+        
       <EditorContainer>
         <Editor
           editorState={editorState}

@@ -43,7 +43,6 @@ Persistent handle 是一个堆内存上分配的 JavaScript 对象的引用, 这
 
 ### Accessors (存取器)
 存取器是一个当对象属性被 JS 代码访问的时候计算并返回一个值的 C++ 回调. 存取器是通过 Object Template 的 SetAccessor 方法进行配置的. 该方法接收属性的名称和与其相关联的回调函数, 分别在 JS 读取和写入该属性时触发.
-
 存取器的复杂性源于你所操作的数据的访问方式:
 
 * 访问静态全局变量
@@ -62,17 +61,19 @@ Persistent handle 是一个堆内存上分配的 JavaScript 对象的引用, 这
 结合上述嵌入式V8的基本概念，能大致理解V8 [Hello World example](https://chromium.googlesource.com/v8/v8/+/branch-heads/6.8/samples/hello-world.cc?spm=ata.13261165.0.0.32e6d657XiAJqo&file=hello-world.cc)就不影响对V8 Worker的理解了。
 
 ### 学习资料
-[官方文档](https://v8.dev/docs?spm=ata.13261165.0.0.32e6d657XiAJqo)
-[Ignition: An Interpreter for V8   ](https://docs.google.com/presentation/d/1OqjVqRhtwlKeKfvMdX6HaCIu9wpZsrzqpIVIwQSuiXQ/edit?spm=ata.13261165.0.0.32e6d657XiAJqo#slide=id.ge4ef702cb_2_67)
-[Ignition: Jump-starting an Interpreter for V8](https://docs.google.com/presentation/d/1HgDDXBYqCJNasBKBDf9szap1j4q4wnSHhOYpaNy5mHU/edit?spm=ata.13261165.0.0.32e6d657XiAJqo#slide=id.g1357e6d1a4_0_58)
-[V8: Hooking up the Ignition to the Turbofan](https://docs.google.com/presentation/d/1chhN90uB8yPaIhx_h2M3lPyxPgdPmkADqSNAoXYQiVE/edit?spm=ata.13261165.0.0.32e6d657XiAJqo#slide=id.g1357e6d1a4_0_58)
-[Code caching](https://v8.dev/blog/code-caching?spm=ata.13261165.0.0.32e6d657XiAJqo)
+* [官方文档](https://v8.dev/docs?spm=ata.13261165.0.0.32e6d657XiAJqo)
+* [Ignition: An Interpreter for V8   ](https://docs.google.com/presentation/d/1OqjVqRhtwlKeKfvMdX6HaCIu9wpZsrzqpIVIwQSuiXQ/edit?spm=ata.13261165.0.0.32e6d657XiAJqo#slide=id.ge4ef702cb_2_67)
+* [Ignition: Jump-starting an Interpreter for V8](https://docs.google.com/presentation/d/1HgDDXBYqCJNasBKBDf9szap1j4q4wnSHhOYpaNy5mHU/edit?spm=ata.13261165.0.0.32e6d657XiAJqo#slide=id.g1357e6d1a4_0_58)
+* [V8: Hooking up the Ignition to the Turbofan](https://docs.google.com/presentation/d/1chhN90uB8yPaIhx_h2M3lPyxPgdPmkADqSNAoXYQiVE/edit?spm=ata.13261165.0.0.32e6d657XiAJqo#slide=id.g1357e6d1a4_0_58)
+* [Code caching](https://v8.dev/blog/code-caching?spm=ata.13261165.0.0.32e6d657XiAJqo)
 
 ## V8 Worker工程结构
 小程序容器属于是Java工程，V8引擎是C++编写，因此容器要使用V8引擎就需要JNI来调用。于是就引入了J2V8，J2V8是对V8引擎的JAVA封装，属于eclipse开源项目。J2V8内部完成了JS数据结构和Java数据结构绑定，抽象并屏蔽了C++侧Handle、Scope、Tempates等概念，大大简化了Java工程接入V8引擎成本。同时J2V8非常注重性能和内存消耗。
+
 <div class="Image__Small">
   <img src="./miniapp-arch.png" alt="alt text for small image" />
 </div>
+
 ### Render部分JSAPI流程
 如上图所示，Render和Nebula直接的双向通行是分别通过Console.log和WebView的loadUrl接口进行的。
 
