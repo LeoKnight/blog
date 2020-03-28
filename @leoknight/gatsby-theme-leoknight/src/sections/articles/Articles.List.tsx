@@ -116,7 +116,8 @@ const ListItem: React.FC<ArticlesListItemProps> = ({ article, narrow }) => {
             {article.excerpt}
           </Excerpt>
           <MetaData>
-            {article.date} · {article.timeToRead} min read
+            {article.date}
+             {/* · {article.timeToRead} min read */}
           </MetaData>
         </div>
       </Item>
