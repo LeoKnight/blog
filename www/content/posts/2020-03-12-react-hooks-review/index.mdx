@@ -1,0 +1,410 @@
+---
+title: React Hooks 踩坑总结
+author: LeoKnight
+date: 2020-03-12
+hero:
+excerpt:
+canonical_url:
+---
+
+## 为什么会有 Hooks？
+
+随着 React Hooks 在正式版本的实装，Hooks 使 React 以一种全新的编程范式定义了前端开发约束，它为视图开发带来了一种全新的心智模型。
+在 hooks 被引入之前，React 的设计理念是这样的
+* React 认为，UI视图是数据的一种视觉映射，即 `UI = F(DATA)`，这里的`F`需要负责对输入数据进行加工、并对数据的变更做出响应。
+* 公式里的`F`在 React 里抽象成组件，React 是以组件`Component-Based`为粒度编排应用的，组件是代码复用的最小单元。
+* 在设计上，React 采用 props 属性来接收外部的数据，使用 state 属性来管理组件自身产生的数据（状态），而为了实现**运行时**对数据变更做出响应需要，React采用基于类`Class`的组件设计。
+* React 认为组件是有生命周期的，因此开创性地将生命周期的概念引入到了组件设计，从组件的 create 到 destory 提供了一系列生命周期钩子供开发者使用。
+一个 Component-Based 的组件是长这样的：
+```js
+// React基于Class设计组件
+class MyConponent extends React.Component {
+  // 组件自身产生的数据
+  state = {
+    counts: 0
+  }
+
+  // 响应数据变更
+  clickHandle = () => {
+    this.setState({ counts: this.state.counts++ });
+    if (this.props.onClick) this.props.onClick();
+  }
+
+  // lifecycle API
+  componentWillUnmount() {
+    console.log('Will mouned!');
+  }
+
+  // lifecycle API
+  componentDidMount() {
+    console.log('Did mouned!');
+  }
+
+  // 接收外来数据（或加工处理），并编排数据在视觉上的呈现
+  render(props) {
+    return (
+      <>
+        <div>Input content: {props.content}, btn click counts: {this.state.counts}</div>
+        <button onClick={this.clickHandle}>Add</button>
+      </>
+    );
+  }
+}
+```
+
+### Class Component 的问题
+#### 组件复用困局
+组件并不是单纯的信息孤岛，组件之间是可能会产生联系的，一方面是数据的共享，另一个是功能的复用：
+* 对于组件之间的数据共享问题，React官方采用单向数据流**Flux**来解决
+* 对于（有状态）组件的复用，React团队给出过许多的方案。从早起的 `CreateClass + Mixins`，到后来设计了`Render Props + Higher Order Component`，之后现在的`Function Component + Hooks`的设计
+HOC 的缺陷：
+* 嵌套地狱，每一次 HOC 调用都会产生一个组件实例
+* 可以使用类装饰器缓解组件嵌套带来的可维护性问题，但装饰器本质上还是 HOC
+* 包裹太多层级之后，可能会带来 props 属性的覆盖问题
+Render Props 的缺陷：
+* 数据流向更直观了，子孙组件可以很明确地看到数据来源
+* 但本质上Render Props是基于闭包实现的，大量地用于组件的复用将不可避免地引入了callback hell问题
+* 丢失了组件的上下文，因此没有 this.props 属性，不能像 HOC 那样访问 this.props.children
+#### Javascript Class 的缺陷
+1. this 指向问题
+```js
+class People extends Component {
+  state = {
+    name: 'dm',
+    age: 18,
+  }
+
+  handleClick(e) {
+    // 报错！
+    console.log(this.state);
+  }
+
+  render() {
+    const { name, age } = this.state;
+    return (<div onClick={this.handleClick}>My name is {name}, i am {age} years old.</div>);
+  }
+}
+```
+createClass 不需要处理 this 的指向，到了 Class Component 稍微不慎就会出现因 this 的指向报错。
+2. 编译size（还有性能）问题：
+```js
+// Class Component
+class App extends Component {
+  state = {
+    count: 0
+  }
+
+  componentDidMount() {
+    console.log('Did mount!');
+  }
+
+  increaseCount = () => {
+    this.setState({ count: this.state.count + 1 });
+  }
+
+  decreaseCount = () => {
+    this.setState({ count: this.state.count - 1 });
+  }
+
+  render() {
+    return (
+      <>
+        <h1>Counter</h1>
+        <div>Current count: {this.state.count}</div>
+        <p>
+          <button onClick={this.increaseCount}>Increase</button>
+          <button onClick={this.decreaseCount}>Decrease</button>
+        </p>
+      </>
+    );
+  }
+}
+
+// Function Component
+function App() {
+  const [ count, setCount ] = useState(0);
+  const increaseCount = () => setCount(count + 1);
+  const decreaseCount = () => setCount(count - 1);
+
+  useEffect(() => {
+    console.log('Did mount!');
+  }, []);
+
+  return (
+    <>
+      <h1>Counter</h1>
+      <div>Current count: {count}</div>
+      <p>
+        <button onClick={increaseCount}>Increase</button>
+        <button onClick={decreaseCount}>Decrease</button>
+      </p>
+    </>
+  );
+}
+```
+Class Component 编译结果：
+```js
+var App_App = function (_Component) {
+  Object(inherits["a"])(App, _Component);
+
+  function App() {
+    var _getPrototypeOf2;
+    var _this;
+    Object(classCallCheck["a"])(this, App);
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    _this = Object(possibleConstructorReturn["a"])(this, (_getPrototypeOf2 = Object(getPrototypeOf["a"])(App)).call.apply(_getPrototypeOf2, [this].concat(args)));
+    _this.state = {
+      count: 0
+    };
+    _this.increaseCount = function () {
+      _this.setState({
+        count: _this.state.count + 1
+      });
+    };
+    _this.decreaseCount = function () {
+      _this.setState({
+        count: _this.state.count - 1
+      });
+    };
+    return _this;
+  }
+  Object(createClass["a"])(App, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      console.log('Did mount!');
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      return react_default.a.createElement(/*...*/);
+    }
+  }]);
+  return App;
+}(react["Component"]);
+```
+Function Component编译结果：
+```js
+function App() {
+  var _useState = Object(react["useState"])(0),
+    _useState2 = Object(slicedToArray["a" /* default */ ])(_useState, 2),
+    count = _useState2[0],
+    setCount = _useState2[1];
+  var increaseCount = function increaseCount() {
+    return setCount(count + 1);
+  };
+  var decreaseCount = function decreaseCount() {
+    return setCount(count - 1);
+  };
+  Object(react["useEffect"])(function () {
+    console.log('Did mount!');
+  }, []);
+  return react_default.a.createElement();
+}
+```
+* Javascript实现的类本身比较鸡肋，没有类似Java/C++多继承的概念，类的逻辑复用是个问题
+* Class Component 在 React 内部是当做 Javascript Function 类来处理的
+* Function Component 编译后就是一个普通的 function，function对js引擎是友好的
+
+#### Function Component缺失的功能
+不是所有组件都需要处理生命周期，在React发布之初Function Component被设计了出来，用于简化只有render时Class Component的写法。
+* Function Component是纯函数，利于组件复用和测试。
+* Function Component的问题是只是单纯地接收props、绑定事件、返回jsx，本身是无状态的组件，依赖props传入的handle来响应数据（状态）的变更，所以Function Component不能脱离Class Comnent来存在。
+```js
+function Child(props) {
+  const handleClick = () => {
+    this.props.setCounts(this.props.counts);
+  };
+
+  // UI的变更只能通过Parent Component更新props来做到！!
+  return (
+    <>
+      <div>{this.props.counts}</div>
+      <button onClick={handleClick}>increase counts</button>
+    </>
+  );
+}
+
+class Parent extends Component() {
+  // 状态管理还是得依赖Class Component
+  counts = 0
+
+  render () {
+    const counts = this.state.counts;
+    return (
+      <>
+        <div>sth...</div>
+        <Child counts={counts} setCounts={(x) => this.setState({counts: counts++})} />
+      </>
+    );
+  }
+}
+```
+所以，Function Comonent是否能脱离Class Component独立存在，关键在于让Function Comonent自身具备状态处理能力，即在组件首次render之后，“组件自身能够通过某种机制再触发状态的变更并且引起re-render”，而这种“机制”就是Hooks！
+Hooks的出现弥补了Function Component相对于Class Component的不足，让Function Component取代Class Component成为可能。
+项目中也实践了很多hooks，但不成熟的使用方式会导致很多诡异的 bug，在此记录一下在踩过的坑和解决方案。
+
+## 在用 Hooks 之前你需要做什么？
+1. 仔细阅读 React Hooks [官方文档](https://reactjs.org/docs/hooks-intro.html)
+2. 工程引入 hooks 相关 lint，开启规则
+
+lint插件：[https://www.npmjs.com/package/eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks)
+```json
+{
+  "plugins": ["react-hooks"],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}
+```
+其中， react-hooks/exhaustive-deps 至少warn，也可以是error。建议全新的工程直接配"error"，历史工程配"warn"。
+3. 如若有发现hooks相关lint导致的warning，不要全局autofix
+除了hooks外，正常的lint基本不会改变代码逻辑，只是调整编写规范。但是hooks的lint规则不同，
+exhaustive-deps 的变化会导致代码逻辑发生变化，这极容易引发线上问题，所以对于hooks的waning，请不要做全局autofix操作。除非保证每处逻辑都做到了充分回归。
+建议开启vscode的「autofix on save」。这样能把error与warning遏制在开发阶段，保证自测跟测试时就是符合规则的代码。
+## 依赖问题
+依赖与闭包问题是一定要开启exhaustive-deps 的核心原因。最常见的错误即：mount时绑定事件，后续状态更新出错。
+错误代码示例：（此处用addEventListener做onclick绑定，只是为了方便说明情况）
+```js
+function ErrorDemo() {
+  const [count, setCount] = useState(0);
+  const dom = useRef(null);
+  useEffect(() => {
+    dom.current.addEventListener('click', () => setCount(count + 1));
+  }, []);
+  return <div ref={dom}>{count}</div>;
+}
+```
+这段代码的初始想法是：每当用户点击dom，count就加1。理想中的效果是一直点，一直加。但实际效果是 {count} 到「1」以后就加不上了。
+
+我们来梳理一下， useEffect(fn, [])  代表只会在mount时触发。也即是首次render时，fn执行一次，绑定了点击事件，点击触发 setCount(count + 1) 。乍一想，count还是那个count，肯定会一直加上去呀，当然现实在啪啪打脸。
+
+状态变更 触发 页面渲染的本质是什么？本质就是 ui = fn(props, state, context) 。props、内部状态、上下文的变更，都会导致渲染函数（此处就是ErrorDemo）的重新执行，然后返回新的view。
+
+那现在问题来了， ErrorDemo 这个函数执行了多次，第一次函数内部的 count 跟后面几次的 count 会有关系吗？这么一想，感觉又应该没有关系了。那为什么 第二次又知道 count 是1，而不是0了呢？第一次的 setCount 跟后面的是同一个函数吗？这背后涉及到hooks的一些底层原理，也关系到了为什么hooks的声明需要声明在函数顶部，不允许在条件语句中声明。在这里就不多讲了。
+
+结论是：每次 count 都是重新声明的变量，指向一个全新的数据；每次的 setCount 虽然是重新声明的，但指向的是同一个引用。
+
+回到正题，我们知道了每次render，内部的count其实都是全新的一个变量。那我们绑定的点击事件方法，也即：setCount(count + 1) ，这里的count，其实指的一直是首次render时的那个count，所以一直是0 ，因此 setCount，一直是设置count为1。
+
+那这个问题怎么解？
+
+首先，应该遵守前面的硬性要求，必须要加lint规则，并开启autofix on save。然后就会发现，其实这个 effect 是依赖 count 的。autofix 会帮你自动补上依赖，代码变成这样：
+```js
+useEffect(() => {
+  dom.current.addEventListener('click', () => setCount(count + 1));
+}, [count]);
+```
+那这样肯定就不对了，相当于每次count变化，都会重新绑定一次事件。所以对于事件的绑定，或者类似的场景，有几种思路，我按我的常规处理优先级排列：
+1. 消除依赖
+在这个场景里，很简单，我们主要利用 setCount 的另一个用法 functional updates。这样写就好了：`() => setCount(prevCount => ++prevCount)` ，不用关心什么新的旧的、什么闭包，省心省事。
+2. 重新绑定事件
+那如果我们这个事件就是要消费这个count怎么办？比如这样：
+```js
+dom.current.addEventListener('click', () => {
+  console.log(count);
+  setCount(prevCount => ++prevCount);
+});
+```
+我们不必执着于一定只在mount时执行一次。也可以每次重新render前移除事件，render后绑定事件即可。这里利用useEffect的特性，具体可以自己看文档：
+```js
+useEffect(() => {
+  const $dom = dom.current;
+  const event = () => {
+    console.log(count);
+    setCount(prev => ++prev);
+  };
+  $dom.addEventListener('click', event);
+  return () => $dom.removeEventListener('click', event);
+}, [count]);
+```
+3. 如果嫌这样开销大，或者编写麻烦，也可以用 useRef, 其实用 useRef 也挺麻烦的，我个人不太喜欢这样操作，但也能解决问题，代码如下：
+```js
+const [count, setCount] = useState(0);
+const countRef = useRef(count);
+useEffect(() => {
+  dom.current.addEventListener('click', () => {
+    console.log(countRef.current);
+    setCount(prevCount => {
+      const newCount = ++prevCount;
+      countRef.current = newCount;
+      return newCount;
+    });
+  });
+}, []);
+```
+
+## useCallback 与 useMemo
+这两个api，其实概念上还是很好理解的，一个是「缓存函数」， 一个是缓存「函数的返回值」。但我们经常会懒得用，甚至有的时候会用错。
+
+从上面依赖问题我们其实可以知道，hooks对「有没有变化」这个点其实很敏感。如果一个effect内部使用了某数据或者方法。若我们依赖项不加上它，那很容易由于闭包问题，导致数据或方法，都不是我们理想中的那个它。如果我们加上它，很可能又会由于他们的变动，导致effect疯狂的执行。真实开发的话，大家应该会经常遇到这种问题。
+
+所以，在此建议：
+
+1. 在组件内部，那些会成为其他useEffect依赖项的方法，建议用 useCallback 包裹，或者直接编写在引用它的useEffect中。
+2. 己所不欲勿施于人，如果你的function会作为props传递给子组件，请一定要使用 useCallback 包裹，对于子组件来说，如果每次render都会导致你传递的函数发生变化，可能会对它造成非常大的困扰。同时也不利于react做渲染优化。
+不过还有一种场景，大家很容易忽视，而且还很容易将useCallback与useMemo混淆，典型场景就是：节流防抖。
+举个例子：
+```js
+function BadDemo() {
+  const [count, setCount] = useState(1);
+  const handleClick = debounce(() => {
+    setCount(c => ++c);
+  }, 1000);
+  return <div onClick={handleClick}>{count}</div>;
+}
+```
+我们希望防止用户连续点击触发多次变更，加了个防抖，停止点击1秒后才触发 count + 1 ，这个组件在理想逻辑下是OK的。但现实是骨感的，我们的页面组件非常多，这个 BadDemo 可能由于父级什么操作就重新render了。现在假使我们页面每500毫秒会重新render一次，那么就是这样：
+```js
+function BadDemo() {
+  const [count, setCount] = useState(1);
+  const [, setRerender] = useState(false);
+  const handleClick = debounce(() => {
+    setCount(c => ++c);
+  }, 1000);
+  useEffect(() => {
+    // 每500ms，组件重新render
+    window.setInterval(() => {
+      setRerender(r => !r);
+    }, 500);
+  }, []);
+  return <div onClick={handleClick}>{count}</div>;
+}
+```
+每次render导致handleClick其实是不同的函数，那么这个防抖自然而然就失效了。这样的情况对于一些防重点要求特别高的场景，是有着较大的线上风险的。
+那怎么办呢？自然是想加上 useCallback :
+```js
+const handleClick = useCallback(debounce(() => {
+  setCount(c => ++c);
+}, 1000), []);
+```
+现在我们发现效果满足我们期望了，但这背后还藏着一个惊天大坑。
+假如说，这个防抖的函数有一些依赖呢？比如`setCount(c => ++c)`; 变成了 `setCount(count + 1)` 。那这个函数就依赖了 count 。代码就变成了这样：
+```js
+const handleClick = useCallback(
+  debounce(() => {
+    setCount(count + 1);
+  }, 1000),
+  []
+);
+```
+大家会发现，你的lint规则，竟然不会要求你把 count 作为依赖项，填充到deps数组中去。这进而导致了最初的那个问题，只有第一次点击会count++。这是为什么呢？
+
+因为传入useCallback的是一段执行语句，而不是一个函数声明。只是说它执行以后返回的新函数，我们将其作为了 useCallback 函数的入参，而这个新函数具体是个啥，其实lint规则也不知道。
+
+更合理的姿势应该是使用 useMemo :
+```js
+const handleClick = useMemo(
+  () => debounce(() => {
+    setCount(count + 1);
+  }, 1000),
+  [count]
+);
+```
+这样保证每当 count 发生变化时，会返回一个新的加了防抖功能的新函数。
+
+
+## 思考
+* React是如何识别纯函数组件和类组件的？
