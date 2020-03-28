@@ -45,7 +45,7 @@ const Article: Template = ({ pageContext, location }) => {
   const results = useStaticQuery(siteQuery);
   const name = results.allSite.edges[0].node.siteMetadata.name;
 
-  const { article, authors, mailchimp, next } = pageContext;
+  const { article, authors, mailchimp,discussion, next } = pageContext;
 
   useEffect(() => {
     const calculateBodySize = throttle(() => {
@@ -96,7 +96,8 @@ const Article: Template = ({ pageContext, location }) => {
         </MDXRenderer>
       </ArticleBody>
       {mailchimp && article.subscription && <Subscription />}
-      <Discussion article={article} />
+      {discussion && <Discussion article={article} /> }
+      
       {next.length > 0 && (
         <NextArticle narrow>
           <FooterNext>More articles from {name}</FooterNext>

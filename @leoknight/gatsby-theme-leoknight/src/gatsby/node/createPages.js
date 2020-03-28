@@ -29,6 +29,7 @@ function buildPaginatedPath(index, basePath) {
 
 function slugify(string, base) {
   const slug = string
+  // const slug = string.replace(/\s/g,'')
     // .toLowerCase()
     // .normalize('NFD')
     // .replace(/[\u0300-\u036F]/g, '')
@@ -55,6 +56,7 @@ module.exports = async ({ actions: { createPage }, graphql }, themeOptions) => {
     pageLength = 6,
     sources = {},
     mailchimp = '',
+    discussion = false
   } = themeOptions;
 
   const { data } = await graphql(`
@@ -212,19 +214,22 @@ module.exports = async ({ actions: { createPage }, graphql }, themeOptions) => {
       next = [...next, articlesThatArentSecret[0]];
     if (articlesThatArentSecret.length === 1) next = [];
 
+    const slug = article.slug
+    // .slug.replace(/\s/g,'')
     createPage({
-      path: article.slug,
+      path: slug,
       component: templates.article,
       context: {
         article,
         authors: authorsThatWroteTheArticle,
         basePath,
-        permalink: `${data.site.siteMetadata.siteUrl}/${article.slug}/`,
-        slug: article.slug,
+        permalink: `${data.site.siteMetadata.siteUrl}/${slug}/`,
+        slug: slug,
         id: article.id,
         title: article.title,
         canonicalUrl: article.canonical_url,
         mailchimp,
+        discussion,
         next,
       },
     });

@@ -31,6 +31,7 @@ const plugins = [
       basePath: "/",
       authorsPage: true,
       mailchimp: true,
+      discussion: false,
       sources: {
         local: true,
         contentful: false,
