@@ -38,6 +38,7 @@
     "@mdx-js/react": "^1.0.27",
     "@raae/gatsby-remark-oembed": "^0.1.1",
     "adm-zip": "^0.4.13",
+    "apollo-link-http": "^1.5.16",
     "babel-plugin-emotion": "^10.0.14",
     "css-doodle": "^0.8.1",
     "draft-js": "^0.11.4",
