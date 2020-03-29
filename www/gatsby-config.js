@@ -1,11 +1,11 @@
 require("dotenv").config();
 const { DEV_URL = 'localhost' } = process.env;
 const siteUrl = process.env.NODE_ENV === 'development' ? DEV_URL : `https://leoknight.netlify.com/`;
-console.log('1111', siteUrl)
+
 const siteMetadata = {
   title: `LeoKnight's blog`,
   name: `LeoKnight`,
-  siteUrl,
+  siteUrl: siteUrl,
   description: `LeoKnight's blog`,
   hero: {
     heading: `Standing on the shoulders of giants.`,
@@ -34,7 +34,7 @@ const plugins = [
       authorsPage: true,
       mailchimp: true,
       discussion: false,
-      disqus: false,
+      disqus: true,
       sources: {
         local: true,
         contentful: false,

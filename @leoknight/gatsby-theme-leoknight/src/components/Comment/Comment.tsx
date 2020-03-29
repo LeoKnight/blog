@@ -28,7 +28,6 @@ const Container = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 64px 0 55px;
   margin: 10px auto 100px;
   background: ${p => p.theme.colors.card};
   box-shadow: 0px 4px 50px rgba(0, 0, 0, 0.05);
@@ -39,4 +38,5 @@ const Content = styled.div`
   margin: 0 auto;
   width: 100%;
   padding:15px;
+  background: white;
 `;
