@@ -19,6 +19,7 @@ import ArticleControls from "../sections/article/Article.Controls";
 import ArticlesNext from "../sections/article/Article.Next";
 import ArticleSEO from "../sections/article/Article.SEO";
 import ArticleShare from "../sections/article/Article.Share";
+import Comment from "../components/Comment";
 
 import { Template } from "@types";
 
@@ -36,7 +37,8 @@ const siteQuery = graphql`
   }
 `;
 
-const Article: Template = ({ pageContext, location }) => {
+const Article: Template = (props) => {
+  const { pageContext, location } = props
   const contentSectionRef = useRef<HTMLElement>(null);
 
   const [hasCalculated, setHasCalculated] = useState<boolean>(false);
@@ -45,7 +47,13 @@ const Article: Template = ({ pageContext, location }) => {
   const results = useStaticQuery(siteQuery);
   const name = results.allSite.edges[0].node.siteMetadata.name;
 
-  const { article, authors, mailchimp,discussion, next } = pageContext;
+  const { article, authors, mailchimp, discussion, next, disqus } = pageContext;
+
+  let disqusConfig = {
+    url: location.href,
+    identifier: article.id,
+    title: article.title,
+  }
 
   useEffect(() => {
     const calculateBodySize = throttle(() => {
@@ -97,7 +105,7 @@ const Article: Template = ({ pageContext, location }) => {
       </ArticleBody>
       {mailchimp && article.subscription && <Subscription />}
       {discussion && <Discussion article={article} /> }
-      
+      {disqus && <Comment config={disqusConfig}/>}
       {next.length > 0 && (
         <NextArticle narrow>
           <FooterNext>More articles from {name}</FooterNext>

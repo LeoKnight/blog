@@ -56,6 +56,7 @@ module.exports = async ({ actions: { createPage }, graphql }, themeOptions) => {
     pageLength = 6,
     sources = {},
     mailchimp = '',
+    disqus = false,
     discussion = false
   } = themeOptions;
 
@@ -230,6 +231,7 @@ module.exports = async ({ actions: { createPage }, graphql }, themeOptions) => {
         canonicalUrl: article.canonical_url,
         mailchimp,
         discussion,
+        disqus,
         next,
       },
     });

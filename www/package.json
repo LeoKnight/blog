@@ -12,6 +12,7 @@
     "@leoknight/gatsby-theme-leoknight": "^0.0.1",
     "dotenv": "^8.0.0",
     "gatsby": "^2.13.41",
+    "gatsby-plugin-disqus": "^1.1.4",
     "gatsby-plugin-mailchimp": "^5.1.2",
     "gatsby-plugin-manifest": "^2.2.4",
     "gatsby-source-filesystem": "^2.1.9",
