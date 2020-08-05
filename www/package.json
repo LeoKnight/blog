@@ -4,7 +4,7 @@
   "version": "1.4.0",
   "license": "MIT",
   "scripts": {
-    "build": "gatsby build && cp -R _redirects public/",
+    "build": "gatsby build && cp -R public/ ../public/",
     "develop": "rm -rf .cache && gatsby develop",
     "clean": "gatsby clean"
   },
