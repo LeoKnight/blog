@@ -1,11 +1,12 @@
 require("dotenv").config();
-const { DEV_URL = 'localhost' } = process.env;
+
+const { DEV_URL = 'http://localhost' } = process.env;
 const siteUrl = process.env.NODE_ENV === 'development' ? DEV_URL : `https://leoknight.netlify.com/`;
 
 const siteMetadata = {
   title: `LeoKnight's blog`,
   name: `LeoKnight`,
-  siteUrl: siteUrl,
+  siteUrl,
   description: `LeoKnight's blog`,
   hero: {
     heading: `Standing on the shoulders of giants.`,

@@ -1,5 +1,5 @@
 import React from "react";
-import { Disqus, CommentCount } from 'gatsby-plugin-disqus'
+import { Disqus } from 'gatsby-plugin-disqus'
 
 import Section from "@components/Section";
 
